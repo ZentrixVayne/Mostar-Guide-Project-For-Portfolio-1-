@@ -1,355 +1,365 @@
-// Utility functions globally available
-const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
-const smoothstep = (e0, e1, v) => {
-  const x = clamp((v - e0) / (e1 - e0));
-  return x * x * (3 - 2 * x);
-};
-const lerp = (a, b, t) => a + (b - a) * t;
-const segmentInOut = (s, a, b, c, d) => {
-  const enter = smoothstep(a, b, s);
-  const exit = smoothstep(c, d, s);
-  return { enter, exit, active: enter * (1 - exit) };
-};
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Utility functions ---
+  const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+  const smoothstep = (e0, e1, v) => {
+    const x = clamp((v - e0) / (e1 - e0));
+    return x * x * (3 - 2 * x);
+  };
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const segmentInOut = (s, a, b, c, d) => {
+    const enter = smoothstep(a, b, s);
+    const exit = smoothstep(c, d, s);
+    return { enter, exit, active: enter * (1 - exit) };
+  };
 
-// --- Preloader Elements ---
-const preloader = document.querySelector(".preloader");
-const preloaderProgress = document.querySelector(".preloader-progress");
-const preloaderText = document.querySelector(".preloader-text");
-
-// --- Custom Cursor Logic ---
-const cursorDot = document.querySelector(".cursor-dot");
-const cursorRing = document.querySelector(".cursor-ring");
-
-let dotX = 0, dotY = 0, ringX = 0, ringY = 0;
-let targetX = 0, targetY = 0;
-
-function updateCursor() {
-  dotX = lerp(dotX, targetX, 0.2);
-  dotY = lerp(dotY, targetY, 0.2);
-  ringX = lerp(ringX, targetX, 0.1);
-  ringY = lerp(ringY, targetY, 0.1);
+  // --- Preloader Elements ---
+  const preloader = document.querySelector(".preloader");
+  const preloaderProgress = document.querySelector(".preloader-progress");
+  const preloaderText = document.querySelector(".preloader-text");
   
-  if (cursorDot) cursorDot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`;
-  if (cursorRing) cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
-  requestAnimationFrame(updateCursor);
-}
-if (cursorDot && cursorRing) updateCursor();
+  // --- Custom Cursor Logic ---
+  const cursorDot = document.querySelector(".cursor-dot");
+  const cursorRing = document.querySelector(".cursor-ring");
+  
+  let dotX = 0, dotY = 0, ringX = 0, ringY = 0;
+  let targetX = 0, targetY = 0;
 
-document.querySelectorAll("a, button, .sight-card").forEach(el => {
-  el.addEventListener("pointerenter", () => cursorRing.classList.add("is-hovering"));
-  el.addEventListener("pointerleave", () => cursorRing.classList.remove("is-hovering"));
-});
+  function updateCursor() {
+    dotX = lerp(dotX, targetX, 0.2);
+    dotY = lerp(dotY, targetY, 0.2);
+    ringX = lerp(ringX, targetX, 0.1);
+    ringY = lerp(ringY, targetY, 0.1);
+    
+    if (cursorDot) cursorDot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`;
+    if (cursorRing) cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
+    requestAnimationFrame(updateCursor);
+  }
+  if (cursorDot && cursorRing) updateCursor();
 
-// --- Modal Logic ---
-const modalOverlay = document.getElementById("modalOverlay");
-const modalKicker = modalOverlay.querySelector(".modal-kicker");
-const modalTitle = modalOverlay.querySelector(".modal-title");
-const modalBody = modalOverlay.querySelector(".modal-body");
-const modalClose = modalOverlay.querySelector(".modal-close");
-
-function openModal(kicker, title, body) {
-  modalKicker.textContent = kicker;
-  modalTitle.textContent = title;
-  modalBody.textContent = body;
-  modalOverlay.classList.add("is-open");
-}
-function closeModal() { modalOverlay.classList.remove("is-open"); }
-
-modalClose.addEventListener("click", closeModal);
-modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
-window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
-
-const openNotesBtn = document.getElementById("openNotesBtn");
-if (openNotesBtn) {
-  openNotesBtn.addEventListener("click", () => {
-    openModal("Old Town", "Mostar Notes", "Take your time in the bazaar. The best coffee isn't on the main strip—it's in the side courtyards. Look for the hidden mosque entrances and watch your step on the smooth stone paths.");
+  document.querySelectorAll("a, button, .sight-card").forEach(el => {
+    if (!cursorRing) return;
+    el.addEventListener("pointerenter", () => cursorRing.classList.add("is-hovering"));
+    el.addEventListener("pointerleave", () => cursorRing.classList.remove("is-hovering"));
   });
-}
 
-// --- Preloader & Image Loading ---
-const allImageUrls = Array.from(document.querySelectorAll('img.scene-img, img.sight-pin')).map(img => img.src);
-let loadedCount = 0;
-let experienceStarted = false;
+  // --- Modal Logic ---
+  const modalOverlay = document.getElementById("modalOverlay");
+  let modalKicker, modalTitle, modalBody, modalClose;
 
-function onAssetLoad() {
-  loadedCount++;
-  const progress = Math.round((loadedCount / allImageUrls.length) * 100);
+  if (modalOverlay) {
+    modalKicker = modalOverlay.querySelector(".modal-kicker");
+    modalTitle = modalOverlay.querySelector(".modal-title");
+    modalBody = modalOverlay.querySelector(".modal-body");
+    modalClose = modalOverlay.querySelector(".modal-close");
+  }
+
+  function openModal(kicker, title, body) {
+    if (!modalOverlay) return;
+    if (modalKicker) modalKicker.textContent = kicker;
+    if (modalTitle) modalTitle.textContent = title;
+    if (modalBody) modalBody.textContent = body;
+    modalOverlay.classList.add("is-open");
+  }
   
-  if (preloaderProgress) preloaderProgress.style.width = `${progress}%`;
-  if (preloaderText) preloaderText.textContent = `MOSTAR ${progress}%`;
+  function closeModal() { 
+    if (modalOverlay) modalOverlay.classList.remove("is-open"); 
+  }
 
-  if (loadedCount >= allImageUrls.length) {
+  if (modalClose) modalClose.addEventListener("click", closeModal);
+  if (modalOverlay) modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+  const openNotesBtn = document.getElementById("openNotesBtn");
+  if (openNotesBtn) {
+    openNotesBtn.addEventListener("click", () => {
+      openModal("Old Town", "Mostar Notes", "Take your time in the bazaar. The best coffee isn't on the main strip—it's in the side courtyards. Look for the hidden mosque entrances and watch your step on the smooth stone paths.");
+    });
+  }
+
+  // --- Preloader & Image Loading ---
+  const allImageUrls = Array.from(document.querySelectorAll('img.scene-img, img.sight-pin')).map(img => img.src);
+  let loadedCount = 0;
+  let experienceStarted = false;
+
+  function onAssetLoad() {
+    loadedCount++;
+    const progress = Math.round((loadedCount / allImageUrls.length) * 100);
+    
+    if (preloaderProgress) preloaderProgress.style.width = `${progress}%`;
+    if (preloaderText) preloaderText.textContent = `MOSTAR ${progress}%`;
+
+    if (loadedCount >= allImageUrls.length) {
+      setTimeout(() => {
+        if (preloader) preloader.classList.add('is-loaded');
+        startExperience();
+      }, 300);
+    }
+  }
+
+  if (allImageUrls.length === 0) {
+    if (preloader) preloader.classList.add('is-loaded');
+    startExperience();
+  } else {
+    allImageUrls.forEach(url => {
+      const img = new Image();
+      img.onload = img.onerror = onAssetLoad;
+      img.src = url;
+    });
+    
+    // Failsafe: if images take too long or fail, force start after 4 seconds
     setTimeout(() => {
-      if (preloader) preloader.classList.add('is-loaded');
-      startExperience();
-    }, 300);
+      if (!experienceStarted) {
+        if (preloader) preloader.classList.add('is-loaded');
+        startExperience();
+      }
+    }, 4000);
   }
-}
 
-if (allImageUrls.length === 0) {
-  if (preloader) preloader.classList.add('is-loaded');
-  startExperience();
-} else {
-  allImageUrls.forEach(url => {
-    const img = new Image();
-    img.onload = img.onerror = onAssetLoad;
-    img.src = url;
-  });
-  
-  // Failsafe: if images take too long or fail, force start after 4 seconds
-  setTimeout(() => {
-    if (!experienceStarted) {
-      if (preloader) preloader.classList.add('is-loaded');
-      startExperience();
+  // --- Main Experience Logic ---
+  function startExperience() {
+    if (experienceStarted) return;
+    experienceStarted = true;
+
+    const section = document.querySelector(".cinema-scroll");
+    const stage = document.querySelector(".stage");
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const track = document.querySelector(".sights-track");
+    const sightsControls = document.querySelector(".sights-controls");
+    const sightPrev = document.querySelector(".sight-prev");
+    const sightNext = document.querySelector(".sight-next");
+    const originalCards = Array.from(document.querySelectorAll(".sight-card"));
+
+    if (!section || !stage) return; // Stop if core elements missing
+
+    let sectionTop = 0;
+    let sectionHeight = 0;
+
+    let targetMouseX = 0, mouseX = 0;
+    let targetMouseY = 0, mouseY = 0;
+    let targetScroll = 0, smoothScroll = 0;
+    let rafPending = false;
+    let sightCards = [];
+    const originalSightCount = originalCards.length;
+    let activeSight = originalSightCount;
+
+    const getScrollDistance = () => {
+      return clamp(window.scrollY - sectionTop, 0, sectionHeight - window.innerHeight);
+    };
+
+    const setVar = (name, value) => {
+      stage.style.setProperty(name, value);
+    };
+
+    // --- Lenis Smooth Scroll Setup ---
+    let lenis;
+    if (!reduceMotion.matches && window.Lenis) {
+      lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+      lenis.on('scroll', requestTick);
     }
-  }, 4000);
-}
 
-// --- Main Experience Logic ---
-function startExperience() {
-  if (experienceStarted) return;
-  experienceStarted = true;
-
-  const section = document.querySelector(".cinema-scroll");
-  const stage = document.querySelector(".stage");
-  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
-  const track = document.querySelector(".sights-track");
-  const sightsControls = document.querySelector(".sights-controls");
-  const sightPrev = document.querySelector(".sight-prev");
-  const sightNext = document.querySelector(".sight-next");
-  const originalCards = Array.from(document.querySelectorAll(".sight-card"));
-
-  let sectionTop = 0;
-  let sectionHeight = 0;
-
-  let targetMouseX = 0, mouseX = 0;
-  let targetMouseY = 0, mouseY = 0;
-  let targetScroll = 0, smoothScroll = 0;
-  let rafPending = false;
-  let sightCards = [];
-  const originalSightCount = originalCards.length;
-  let activeSight = originalSightCount;
-
-  const getScrollDistance = () => {
-    return clamp(window.scrollY - sectionTop, 0, sectionHeight - window.innerHeight);
-  };
-
-  const setVar = (name, value) => {
-    stage.style.setProperty(name, value);
-  };
-
-  // --- Lenis Smooth Scroll Setup ---
-  let lenis;
-  if (!reduceMotion.matches && window.Lenis) {
-    lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
-    lenis.on('scroll', requestTick);
-  }
-
-  function requestTick() {
-    if (rafPending) return;
-    rafPending = true;
-    requestAnimationFrame(update);
-  }
-
-  function update(time) {
-    rafPending = false;
-
-    if (lenis) lenis.raf(time); // Drive Lenis within our RAF
-
-    targetScroll = getScrollDistance();
-    // Since Lenis handles the smooth scroll natively, we map it 1:1
-    smoothScroll = targetScroll;
-
-    mouseX = lerp(mouseX, targetMouseX, 0.12);
-    mouseY = lerp(mouseY, targetMouseY, 0.12);
-
-    const frame2 = segmentInOut(smoothScroll, 560, 900, 1300, 1620);
-    const frame3 = segmentInOut(smoothScroll, 1760, 2140, 2540, 2700);
-    const progress = clamp(smoothScroll / 2700);
-    const introExit = smoothstep(90, 650, smoothScroll);
-    const sightsEnterRaw = smoothstep(2760, 3560, smoothScroll);
-    const sightsEnter = Math.pow(sightsEnterRaw, 1.55);
-    const sightsControlsEnter = smoothstep(3360, 3660, smoothScroll);
-    const blurActive = clamp(frame2.active + frame3.active);
-    const frame2Opacity = frame2.active * (1 - frame3.enter);
-    const splitDrift = Math.pow(frame2.enter, 1.5);
-    const panel2Opacity = frame2.active * (1 - frame2.exit);
-    const panel3Opacity = frame3.active * (1 - frame3.exit);
-    const backScale = 0.76 + progress * 0.2 + frame2.enter * 0.18 + frame3.enter * 0.16;
-    const sharedHeroY = progress * -74;
-    const sharedHeroScale = progress * 0.23;
-    const sightsScreenTop = Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50;
-    const sightsParentTop = window.innerHeight - (window.innerHeight - sightsScreenTop) / backScale;
-
-    setVar("--mx", (reduceMotion.matches ? 0 : mouseX).toFixed(4));
-    setVar("--my", (reduceMotion.matches ? 0 : mouseY).toFixed(4));
-
-    setVar("--back-opacity", (1 - frame2.active * 0.06).toString());
-    setVar("--back-x", `${mouseX * -12}px`);
-    setVar("--back-y", `${mouseY * -4}px`);
-    setVar("--back-scale", backScale);
-    setVar("--four-y", `${10 + progress * 10}vh`);
-    setVar("--four-scale", (0.78 + progress * 0.16).toString());
-    setVar("--bazaar-y", `${20 - progress * 8}vh`);
-    setVar("--blur-px", `${blurActive * 14}px`);
-    setVar("--back-brightness", (1 - blurActive * 0.255).toString());
-    setVar("--bazaar-blur-px", `${frame2.active * 14}px`);
-    setVar("--bazaar-brightness", (1 - frame2.active * 0.255 - frame3.active * 0.06).toString());
-    setVar("--bazaar-saturation", (1 + frame3.active * 0.18).toString());
-    setVar("--shade-opacity", "1");
-    setVar("--shade-z", frame2.active > 0.02 ? "2" : "0");
-    setVar("--shade-top-alpha", (blurActive * 0.465).toString());
-    setVar("--shade-mid-alpha", (blurActive * 0.42).toString());
-    setVar("--shade-bottom-alpha", (blurActive * 0.51).toString());
-
-    setVar("--title-y", `${introExit * -210}px`);
-    setVar("--title-scale", (1 - introExit * 0.08).toString());
-    setVar("--title-opacity", (1 - introExit).toString());
-
-    setVar("--bridge-x", `calc(-50% + ${mouseX * 18}px)`);
-    setVar("--bridge-y", `${mouseY * 8 + sharedHeroY - frame2.exit * 760}px`);
-    setVar("--bridge-bottom", `${5 - frame2.enter * 13}vh`);
-    setVar("--bridge-width", `${67.2 + frame2.enter * 37.8}vw`);
-    setVar("--bridge-scale", (1.02 + sharedHeroScale + frame2.exit * 0.46).toString());
-
-    setVar("--split-left-x", `calc(-50% + ${-splitDrift * 46}vw + ${mouseX * 22}px)`);
-    setVar("--split-left-y", `${mouseY * 10 + sharedHeroY - splitDrift * 180}px`);
-    setVar("--split-left-scale", (1 + sharedHeroScale + frame2.enter * 0.74).toString());
-    setVar("--split-right-x", `calc(-50% + ${splitDrift * 46}vw + ${mouseX * 22}px)`);
-    setVar("--split-right-y", `${mouseY * 10 + sharedHeroY - splitDrift * 180}px`);
-    setVar("--split-right-scale", (1 + sharedHeroScale + frame2.enter * 0.74).toString());
-
-    setVar("--frame2-opacity", frame2Opacity.toString());
-    setVar("--frame2-x", `calc(-50% + ${mouseX * 10}px)`);
-    setVar("--frame2-y", `calc(-50% + ${mouseY * 8 - frame2.exit * 150}px)`);
-    setVar("--frame2-scale", (1.06 + frame2.enter * 0.08 + frame2.exit * 0.08).toString());
-
-    setVar("--intro-copy-y", `${introExit * 90}px`);
-    setVar("--intro-copy-opacity", (1 - introExit).toString());
-    setVar("--panel2-opacity", panel2Opacity.toString());
-    setVar("--panel2-y", `calc(-50% + ${-frame2.exit * 86 + (1 - frame2.enter) * 58}px)`);
-    setVar("--panel3-opacity", panel3Opacity.toString());
-    setVar("--panel3-y", `calc(-50% + ${-frame3.exit * 86 + (1 - frame3.enter) * 58}px)`);
-
-    setVar("--sights-opacity", sightsEnter.toString());
-    setVar("--sights-controls-opacity", sightsControlsEnter.toString());
-    sightsControls.classList.toggle("is-ready", sightsControlsEnter > 0.98);
-    setVar("--sights-visibility", sightsEnter > 0.01 ? "visible" : "hidden");
-    setVar("--sights-y", "0px");
-    setVar("--sights-enter-x", `${(1 - sightsEnter) * 420}vw`);
-    setVar("--sights-scale", (1 / backScale).toString());
-    setVar("--sights-top", `${sightsParentTop}px`);
-    setVar("--sights-screen-top", `${sightsScreenTop}px`);
-
-    if (Math.abs(smoothScroll - targetScroll) > 0.08 ||
-        Math.abs(mouseX - targetMouseX) > 0.001 ||
-        Math.abs(mouseY - targetMouseY) > 0.001) {
-      requestTick();
+    function requestTick() {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(update);
     }
-  }
 
-  function setupSightSlider() {
-    track.replaceChildren();
-    for (let setIndex = 0; setIndex < 3; setIndex++) {
-      originalCards.forEach((card, cardIndex) => {
-        const clone = card.cloneNode(true);
-        clone.dataset.sightIndex = String(setIndex * originalSightCount + cardIndex);
-        track.appendChild(clone);
-      });
+    function update(time) {
+      rafPending = false;
+      if (lenis) lenis.raf(time); 
+
+      targetScroll = getScrollDistance();
+      smoothScroll = targetScroll;
+
+      mouseX = lerp(mouseX, targetMouseX, 0.12);
+      mouseY = lerp(mouseY, targetMouseY, 0.12);
+
+      const frame2 = segmentInOut(smoothScroll, 560, 900, 1300, 1620);
+      const frame3 = segmentInOut(smoothScroll, 1760, 2140, 2540, 2700);
+      const progress = clamp(smoothScroll / 2700);
+      const introExit = smoothstep(90, 650, smoothScroll);
+      const sightsEnterRaw = smoothstep(2760, 3560, smoothScroll);
+      const sightsEnter = Math.pow(sightsEnterRaw, 1.55);
+      const sightsControlsEnter = smoothstep(3360, 3660, smoothScroll);
+      const blurActive = clamp(frame2.active + frame3.active);
+      const frame2Opacity = frame2.active * (1 - frame3.enter);
+      const splitDrift = Math.pow(frame2.enter, 1.5);
+      const panel2Opacity = frame2.active * (1 - frame2.exit);
+      const panel3Opacity = frame3.active * (1 - frame3.exit);
+      const backScale = 0.76 + progress * 0.2 + frame2.enter * 0.18 + frame3.enter * 0.16;
+      const sharedHeroY = progress * -74;
+      const sharedHeroScale = progress * 0.23;
+      const sightsScreenTop = Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50;
+      const sightsParentTop = window.innerHeight - (window.innerHeight - sightsScreenTop) / backScale;
+
+      setVar("--mx", (reduceMotion.matches ? 0 : mouseX).toFixed(4));
+      setVar("--my", (reduceMotion.matches ? 0 : mouseY).toFixed(4));
+
+      setVar("--back-opacity", (1 - frame2.active * 0.06).toString());
+      setVar("--back-x", `${mouseX * -12}px`);
+      setVar("--back-y", `${mouseY * -4}px`);
+      setVar("--back-scale", backScale);
+      setVar("--four-y", `${10 + progress * 10}vh`);
+      setVar("--four-scale", (0.78 + progress * 0.16).toString());
+      setVar("--bazaar-y", `${20 - progress * 8}vh`);
+      setVar("--blur-px", `${blurActive * 14}px`);
+      setVar("--back-brightness", (1 - blurActive * 0.255).toString());
+      setVar("--bazaar-blur-px", `${frame2.active * 14}px`);
+      setVar("--bazaar-brightness", (1 - frame2.active * 0.255 - frame3.active * 0.06).toString());
+      setVar("--bazaar-saturation", (1 + frame3.active * 0.18).toString());
+      setVar("--shade-opacity", "1");
+      setVar("--shade-z", frame2.active > 0.02 ? "2" : "0");
+      setVar("--shade-top-alpha", (blurActive * 0.465).toString());
+      setVar("--shade-mid-alpha", (blurActive * 0.42).toString());
+      setVar("--shade-bottom-alpha", (blurActive * 0.51).toString());
+
+      setVar("--title-y", `${introExit * -210}px`);
+      setVar("--title-scale", (1 - introExit * 0.08).toString());
+      setVar("--title-opacity", (1 - introExit).toString());
+
+      setVar("--bridge-x", `calc(-50% + ${mouseX * 18}px)`);
+      setVar("--bridge-y", `${mouseY * 8 + sharedHeroY - frame2.exit * 760}px`);
+      setVar("--bridge-bottom", `${5 - frame2.enter * 13}vh`);
+      setVar("--bridge-width", `${67.2 + frame2.enter * 37.8}vw`);
+      setVar("--bridge-scale", (1.02 + sharedHeroScale + frame2.exit * 0.46).toString());
+
+      setVar("--split-left-x", `calc(-50% + ${-splitDrift * 46}vw + ${mouseX * 22}px)`);
+      setVar("--split-left-y", `${mouseY * 10 + sharedHeroY - splitDrift * 180}px`);
+      setVar("--split-left-scale", (1 + sharedHeroScale + frame2.enter * 0.74).toString());
+      setVar("--split-right-x", `calc(-50% + ${splitDrift * 46}vw + ${mouseX * 22}px)`);
+      setVar("--split-right-y", `${mouseY * 10 + sharedHeroY - splitDrift * 180}px`);
+      setVar("--split-right-scale", (1 + sharedHeroScale + frame2.enter * 0.74).toString());
+
+      setVar("--frame2-opacity", frame2Opacity.toString());
+      setVar("--frame2-x", `calc(-50% + ${mouseX * 10}px)`);
+      setVar("--frame2-y", `calc(-50% + ${mouseY * 8 - frame2.exit * 150}px)`);
+      setVar("--frame2-scale", (1.06 + frame2.enter * 0.08 + frame2.exit * 0.08).toString());
+
+      setVar("--intro-copy-y", `${introExit * 90}px`);
+      setVar("--intro-copy-opacity", (1 - introExit).toString());
+      setVar("--panel2-opacity", panel2Opacity.toString());
+      setVar("--panel2-y", `calc(-50% + ${-frame2.exit * 86 + (1 - frame2.enter) * 58}px)`);
+      setVar("--panel3-opacity", panel3Opacity.toString());
+      setVar("--panel3-y", `calc(-50% + ${-frame3.exit * 86 + (1 - frame3.enter) * 58}px)`);
+
+      setVar("--sights-opacity", sightsEnter.toString());
+      setVar("--sights-controls-opacity", sightsControlsEnter.toString());
+      sightsControls.classList.toggle("is-ready", sightsControlsEnter > 0.98);
+      setVar("--sights-visibility", sightsEnter > 0.01 ? "visible" : "hidden");
+      setVar("--sights-y", "0px");
+      setVar("--sights-enter-x", `${(1 - sightsEnter) * 420}vw`);
+      setVar("--sights-scale", (1 / backScale).toString());
+      setVar("--sights-top", `${sightsParentTop}px`);
+      setVar("--sights-screen-top", `${sightsScreenTop}px`);
+
+      if (Math.abs(smoothScroll - targetScroll) > 0.08 ||
+          Math.abs(mouseX - targetMouseX) > 0.001 ||
+          Math.abs(mouseY - targetMouseY) > 0.001) {
+        requestTick();
+      }
     }
-    sightCards = Array.from(track.querySelectorAll(".sight-card"));
-    activeSight = originalSightCount;
 
-    sightCards.forEach((card) => {
-      card.addEventListener("click", () => selectSightCard(card));
-      card.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          selectSightCard(card);
+    function setupSightSlider() {
+      track.replaceChildren();
+      for (let setIndex = 0; setIndex < 3; setIndex++) {
+        originalCards.forEach((card, cardIndex) => {
+          const clone = card.cloneNode(true);
+          clone.dataset.sightIndex = String(setIndex * originalSightCount + cardIndex);
+          track.appendChild(clone);
+        });
+      }
+      sightCards = Array.from(track.querySelectorAll(".sight-card"));
+      activeSight = originalSightCount;
+
+      sightCards.forEach((card) => {
+        card.addEventListener("click", () => selectSightCard(card));
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            selectSightCard(card);
+          }
+        });
+        if (cursorRing) {
+          card.addEventListener("pointerenter", () => cursorRing.classList.add("is-hovering"));
+          card.addEventListener("pointerleave", () => cursorRing.classList.remove("is-hovering"));
         }
       });
-      // Rebind cursor hover for cloned elements
-      card.addEventListener("pointerenter", () => cursorRing.classList.add("is-hovering"));
-      card.addEventListener("pointerleave", () => cursorRing.classList.remove("is-hovering"));
-    });
 
-    track.addEventListener("transitionend", normalizeSightSlider);
-    updateSightSlider();
-  }
-
-  function updateSightSlider() {
-    if (!sightCards.length) return;
-    const cardWidth = sightCards[0].offsetWidth;
-    const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
-    setVar("--sights-shift", `${-(cardWidth + gap) * activeSight}px`);
-    sightCards.forEach((card) => {
-      card.classList.toggle("is-active", Number(card.dataset.sightIndex) === activeSight);
-    });
-  }
-
-  function moveSightSlider(dir) {
-    activeSight += dir;
-    updateSightSlider();
-  }
-
-  function selectSightCard(card) {
-    const idx = Number(card.dataset.sightIndex);
-    if (Number.isFinite(idx)) {
-      activeSight = idx;
+      track.addEventListener("transitionend", normalizeSightSlider);
       updateSightSlider();
-      
-      // Open Modal with Data
-      const originalIndex = idx % originalSightCount;
-      const dataCard = originalCards[originalIndex];
-      openModal(dataCard.dataset.kicker, dataCard.dataset.title, dataCard.dataset.body);
     }
-  }
 
-  function jumpSightSlider(i) {
-    track.classList.add("is-jumping");
-    activeSight = i;
-    updateSightSlider();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        track.classList.remove("is-jumping");
+    function updateSightSlider() {
+      if (!sightCards.length) return;
+      const cardWidth = sightCards[0].offsetWidth;
+      const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+      setVar("--sights-shift", `${-(cardWidth + gap) * activeSight}px`);
+      sightCards.forEach((card) => {
+        card.classList.toggle("is-active", Number(card.dataset.sightIndex) === activeSight);
       });
-    });
-  }
-
-  function normalizeSightSlider() {
-    if (activeSight >= originalSightCount * 2) {
-      jumpSightSlider(activeSight - originalSightCount);
-    } else if (activeSight < originalSightCount) {
-      jumpSightSlider(activeSight + originalSightCount);
     }
-  }
 
-  let resizeTimeout;
-  function handleResize() {
-    if (resizeTimeout) cancelAnimationFrame(resizeTimeout);
-    resizeTimeout = requestAnimationFrame(() => {
-      sectionTop = section.offsetTop;
-      sectionHeight = section.offsetHeight;
+    function moveSightSlider(dir) {
+      activeSight += dir;
       updateSightSlider();
+    }
+
+    function selectSightCard(card) {
+      const idx = Number(card.dataset.sightIndex);
+      if (Number.isFinite(idx)) {
+        activeSight = idx;
+        updateSightSlider();
+        
+        const originalIndex = idx % originalSightCount;
+        const dataCard = originalCards[originalIndex];
+        openModal(dataCard.dataset.kicker, dataCard.dataset.title, dataCard.dataset.body);
+      }
+    }
+
+    function jumpSightSlider(i) {
+      track.classList.add("is-jumping");
+      activeSight = i;
+      updateSightSlider();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          track.classList.remove("is-jumping");
+        });
+      });
+    }
+
+    function normalizeSightSlider() {
+      if (activeSight >= originalSightCount * 2) {
+        jumpSightSlider(activeSight - originalSightCount);
+      } else if (activeSight < originalSightCount) {
+        jumpSightSlider(activeSight + originalSightCount);
+      }
+    }
+
+    let resizeTimeout;
+    function handleResize() {
+      if (resizeTimeout) cancelAnimationFrame(resizeTimeout);
+      resizeTimeout = requestAnimationFrame(() => {
+        sectionTop = section.offsetTop;
+        sectionHeight = section.offsetHeight;
+        updateSightSlider();
+        requestTick();
+      });
+    }
+
+    window.addEventListener("scroll", requestTick, { passive: true });
+    window.addEventListener("resize", handleResize, { passive: true });
+    
+    window.addEventListener("pointermove", (e) => {
+      targetMouseX = e.clientX / window.innerWidth - 0.5;
+      targetMouseY = e.clientY / window.innerHeight - 0.5;
       requestTick();
-    });
-  }
+    }, { passive: true });
 
-  window.addEventListener("scroll", requestTick, { passive: true });
-  window.addEventListener("resize", handleResize, { passive: true });
-  
-  window.addEventListener("pointermove", (e) => {
-    targetMouseX = e.clientX / window.innerWidth - 0.5;
-    targetMouseY = e.clientY / window.innerHeight - 0.5;
+    sightPrev.addEventListener("click", () => moveSightSlider(-1));
+    sightNext.addEventListener("click", () => moveSightSlider(1));
+
+    sectionTop = section.offsetTop;
+    sectionHeight = section.offsetHeight;
+    setupSightSlider();
     requestTick();
-  }, { passive: true });
-
-  sightPrev.addEventListener("click", () => moveSightSlider(-1));
-  sightNext.addEventListener("click", () => moveSightSlider(1));
-
-  // Initialize bounds and start
-  sectionTop = section.offsetTop;
-  sectionHeight = section.offsetHeight;
-  setupSightSlider();
-  requestTick();
-}
+  }
+});
