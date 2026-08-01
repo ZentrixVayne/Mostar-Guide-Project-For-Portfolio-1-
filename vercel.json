@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/assets/ogg-font.woff2",
+      "destination": "https://dcym8fthxf5uu.cloudfront.net/fonts/247a073c-29f5-4a89-aa3a-741020f346fc/OggText-Medium.woff2"
+    }
+  ]
+}
