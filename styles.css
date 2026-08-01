@@ -49,7 +49,7 @@ body {
   margin: 0;
   overflow-x: clip;
   background: #0b1110;
-  cursor: none; /* Hide default cursor for custom cursor */
+  cursor: none; /* Hide default cursor */
 }
 
 button { border: 0; font: inherit; cursor: none; }
@@ -120,7 +120,6 @@ a { cursor: none; }
   will-change: transform, opacity, filter;
   pointer-events: none;
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 .sky-img {
@@ -354,9 +353,7 @@ a { cursor: none; }
 
 .note-button span:first-child { font-size: 1.25rem; line-height: 1; }
 
-/* --- New Features CSS --- */
-
-/* Preloader */
+/* --- Preloader --- */
 .preloader {
   position: fixed; inset: 0; z-index: 9999;
   background: #0b1110;
@@ -379,26 +376,25 @@ a { cursor: none; }
   transition: width 0.3s ease;
 }
 
-/* Custom Cursor */
+/* --- Custom Cursor --- */
 .cursor-dot, .cursor-ring {
   position: fixed; top: 0; left: 0; z-index: 9998;
   pointer-events: none; border-radius: 50%;
   transform: translate(-50%, -50%);
-  mix-blend-mode: difference;
 }
 .cursor-dot {
-  width: 8px; height: 8px; background: #fdf1e1;
-  transition: transform 0.1s ease;
+  width: 6px; height: 6px; background: #fdf1e1;
 }
 .cursor-ring {
-  width: 36px; height: 36px; border: 1px solid #fdf1e1;
-  transition: transform 0.2s ease, width 0.3s ease, height 0.3s ease;
+  width: 32px; height: 32px; border: 1.5px solid rgba(253, 241, 225, 0.7);
+  transition: transform 0.2s ease, width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
 }
 .cursor-ring.is-hovering {
-  transform: translate(-50%, -50%) scale(0.5);
+  width: 56px; height: 56px;
+  border-color: rgba(127, 180, 212, 0.9);
 }
 
-/* Modal */
+/* --- Modal --- */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 9997;
   background: rgba(11, 17, 16, 0.85);
@@ -429,7 +425,7 @@ a { cursor: none; }
 }
 .modal-body { font-size: 1.1rem; line-height: 1.5; margin: 0; }
 
-/* Routes Section */
+/* --- Routes Section --- */
 .routes-section {
   position: relative; z-index: 11;
   background: #0b1110; color: #fdf1e1;
@@ -470,7 +466,6 @@ a { cursor: none; }
 .back-to-top { color: #fdf1e1; text-decoration: none; }
 .back-to-top:hover { text-decoration: underline; }
 
-/* Responsive */
 @media (max-width: 1500px) {
   .hero-title { font-size: 11rem; }
   .story-panel h2 { font-size: 4.1rem; }
