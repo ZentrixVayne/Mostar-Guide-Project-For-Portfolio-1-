@@ -1,3 +1,9 @@
+// Force page to start at the top on refresh
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- Utility functions ---
   const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
@@ -81,18 +87,28 @@ document.addEventListener("DOMContentLoaded", () => {
   let loadedCount = 0;
   let experienceStarted = false;
 
+  // Simulate progress so the bar always moves smoothly
+  let simulatedProgress = 0;
+  const progressInterval = setInterval(() => {
+    simulatedProgress += Math.random() * 8;
+    if (simulatedProgress > 90) clearInterval(progressInterval);
+    const realProgress = (loadedCount / allImageUrls.length) * 100;
+    const displayProgress = Math.min(95, Math.max(realProgress, simulatedProgress));
+    if (preloaderProgress) preloaderProgress.style.width = `${displayProgress}%`;
+    if (preloaderText) preloaderText.textContent = `MOSTAR ${Math.round(displayProgress)}%`;
+  }, 150);
+
   function onAssetLoad() {
     loadedCount++;
-    const progress = Math.round((loadedCount / allImageUrls.length) * 100);
-    
-    if (preloaderProgress) preloaderProgress.style.width = `${progress}%`;
-    if (preloaderText) preloaderText.textContent = `MOSTAR ${progress}%`;
-
     if (loadedCount >= allImageUrls.length) {
+      clearInterval(progressInterval);
+      if (preloaderProgress) preloaderProgress.style.width = "100%";
+      if (preloaderText) preloaderText.textContent = `MOSTAR 100%`;
+      
       setTimeout(() => {
         if (preloader) preloader.classList.add('is-loaded');
         startExperience();
-      }, 300);
+      }, 400);
     }
   }
 
@@ -106,13 +122,14 @@ document.addEventListener("DOMContentLoaded", () => {
       img.src = url;
     });
     
-    // Failsafe: if images take too long or fail, force start after 4 seconds
+    // Failsafe: if images take too long or fail, force start after 5 seconds
     setTimeout(() => {
       if (!experienceStarted) {
+        clearInterval(progressInterval);
         if (preloader) preloader.classList.add('is-loaded');
         startExperience();
       }
-    }, 4000);
+    }, 5000);
   }
 
   // --- Main Experience Logic ---
@@ -129,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sightNext = document.querySelector(".sight-next");
     const originalCards = Array.from(document.querySelectorAll(".sight-card"));
 
-    if (!section || !stage) return; // Stop if core elements missing
+    if (!section || !stage) return; 
 
     let sectionTop = 0;
     let sectionHeight = 0;
@@ -154,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let lenis;
     if (!reduceMotion.matches && window.Lenis) {
       lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
-      lenis.on('scroll', requestTick);
     }
 
     function requestTick() {
