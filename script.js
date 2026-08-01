@@ -365,8 +365,14 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("resize", handleResize, { passive: true });
     
     window.addEventListener("pointermove", (e) => {
+      // Scene parallax targets
       targetMouseX = e.clientX / window.innerWidth - 0.5;
       targetMouseY = e.clientY / window.innerHeight - 0.5;
+      
+      // Custom cursor targets (THIS FIXES THE STUCK CURSOR)
+      targetX = e.clientX;
+      targetY = e.clientY;
+      
       requestTick();
     }, { passive: true });
 
