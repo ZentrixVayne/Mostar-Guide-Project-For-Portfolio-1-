@@ -7,9 +7,34 @@
 <meta name="description" content="A cinematic three-screen scroll story for Mostar city." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230b1110'/></svg>" />
 <link rel="stylesheet" href="styles.css" />
+<!-- Lenis Smooth Scroll -->
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
 <script defer src="script.js"></script>
 </head>
 <body>
+
+<!-- Preloader -->
+<div class="preloader">
+  <div class="preloader-content">
+    <div class="preloader-text">MOSTAR 0%</div>
+    <div class="preloader-bar"><div class="preloader-progress"></div></div>
+  </div>
+</div>
+
+<!-- Custom Cursor -->
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-content">
+    <button class="modal-close" aria-label="Close modal">&times;</button>
+    <span class="modal-kicker"></span>
+    <h3 class="modal-title"></h3>
+    <p class="modal-body"></p>
+  </div>
+</div>
+
 <main class="site-shell">
   <section class="cinema-scroll" id="cinema" aria-label="Mostar cinematic scroll story">
     <div class="stage">
@@ -35,31 +60,31 @@
 
           <section class="sights-slider" aria-label="Mostar sights slider">
             <div class="sights-track">
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Stari Most card">
+              <article class="sight-card" tabindex="0" role="button" aria-label="Open Stari Most card" data-title="Stari Most" data-kicker="Old Bridge" data-body="The stone arch over the Neretva and Mostar's main landmark. Built by the Ottomans in the 16th century, it connects the two halves of the old city.">
                 <span class="sight-kicker">Old Bridge</span>
                 <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Stari Most</h3>
                 <p>The stone arch over the Neretva and Mostar's main landmark.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Kujundziluk card">
+              <article class="sight-card" tabindex="0" role="button" aria-label="Open Kujundziluk card" data-title="Kujundziluk" data-kicker="Bazaar Street" data-body="Copper shops, souvenirs, and the old bazaar lane by the bridge. It retains its 16th-century Ottoman character and is the heart of daily trade.">
                 <span class="sight-kicker">Bazaar Street</span>
                 <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>Kujundziluk</h3>
                 <p>Copper shops, souvenirs, and the old bazaar lane by the bridge.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Koski Mehmed Pasha Mosque card">
+              <article class="sight-card" tabindex="0" role="button" aria-label="Open Koski Mehmed Pasha Mosque card" data-title="Koski Mehmed Pasha Mosque" data-kicker="Viewpoint" data-body="A classic minaret view back toward Stari Most and the river. The mosque stands on the left bank, offering sweeping views of the old town.">
                 <span class="sight-kicker">Viewpoint</span>
                 <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png" />
                 <h3>Koski Mehmed Pasha Mosque</h3>
                 <p>A classic minaret view back toward Stari Most and the river.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Kajtaz House card">
+              <article class="sight-card" tabindex="0" role="button" aria-label="Open Kajtaz House card" data-title="Kajtaz House" data-kicker="Ottoman House" data-body="A preserved residential house showing Mostar's Ottoman layers. Step inside to see original woodwork and traditional living quarters.">
                 <span class="sight-kicker">Ottoman House</span>
                 <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Kajtaz House</h3>
                 <p>A preserved residential house showing Mostar's Ottoman layers.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open War Photo Exhibition card">
+              <article class="sight-card" tabindex="0" role="button" aria-label="Open War Photo Exhibition card" data-title="War Photo Exhibition" data-kicker="Museum" data-body="A compact, moving stop for context on the city's recent history. Essential for understanding the resilience of modern Mostar.">
                 <span class="sight-kicker">Museum</span>
                 <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>War Photo Exhibition</h3>
@@ -113,12 +138,41 @@
       <section class="story-panel story-panel-bazaar" aria-label="Old town details">
         <h2>The bazaar keeps Mostar close.</h2>
         <p>Stone lanes, mosque courtyards, copper stalls, and riverside coffee stay within a short walk of Stari Most.</p>
-        <button class="note-button">
+        <button class="note-button" id="openNotesBtn">
           <span aria-hidden="true">↗</span>
           <span>Open old town notes</span>
         </button>
       </section>
     </div>
+
+    <!-- New Routes Section -->
+    <section class="routes-section" id="routes" aria-label="Suggested routes">
+      <div class="routes-container">
+        <span class="routes-kicker">Plan Your Walk</span>
+        <h2 class="routes-title">Three ways to see the city.</h2>
+        <div class="routes-grid">
+          <div class="route-card">
+            <span class="route-number">01</span>
+            <h3>The Heritage Loop</h3>
+            <p>Start at Stari Most, cross into the bazaar, visit Koski Mehmed Pasha Mosque, and loop back along the river. A slow morning that captures Mostar's Ottoman heart.</p>
+          </div>
+          <div class="route-card">
+            <span class="route-number">02</span>
+            <h3>Layers of Time</h3>
+            <p>Wander from the Old Bridge to Kajtaz House, then sit with the moving images at the War Photo Exhibition. A deep dive into the city's resilience.</p>
+          </div>
+          <div class="route-card">
+            <span class="route-number">03</span>
+            <h3>Riverside Light</h3>
+            <p>Save this for the late afternoon. Walk the banks of the Neretva, watch the bridge divers, and stay for dinner as the stone turns gold and amber.</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2024 Mostar Guide. Crafted with care.</p>
+          <a href="#cinema" class="back-to-top">Back to top ↑</a>
+        </div>
+      </div>
+    </section>
   </section>
 </body>
 </html>
