@@ -65,6 +65,9 @@ button { border: 0; font: inherit; }
   overflow: hidden;
   isolation: isolate;
   background: #7fb4d4;
+  /* GPU Containment optimizations for 60 FPS */
+  contain: strict;
+  contain-intrinsic-size: 100vw 100vh;
 }
 
 .world { position: absolute; inset: 0; overflow: hidden; background: #79b7dd; }
