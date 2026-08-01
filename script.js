@@ -1,12 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
   const section = document.querySelector(".cinema-scroll");
-  const root = document.documentElement;
+  const stage = document.querySelector(".stage"); // Apply variables here instead of :root
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
   const track = document.querySelector(".sights-track");
   const sightsControls = document.querySelector(".sights-controls");
   const sightPrev = document.querySelector(".sight-prev");
   const sightNext = document.querySelector(".sight-next");
   const originalCards = Array.from(document.querySelectorAll(".sight-card"));
+
+  let sectionTop = 0;
+  let sectionHeight = 0;
 
   let targetMouseX = 0, mouseX = 0;
   let targetMouseY = 0, mouseY = 0;
@@ -28,12 +31,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const exit = smoothstep(c, d, s);
     return { enter, exit, active: enter * (1 - exit) };
   };
-  const getScrollDistance = () =>
-    clamp(-section.getBoundingClientRect().top, 0, section.offsetHeight - window.innerHeight);
 
-  function setVar(name, value) {
-    root.style.setProperty(name, value);
-  }
+  // Caching scroll bounds prevents layout thrashing (massive FPS boost)
+  const getScrollDistance = () => {
+    return clamp(window.scrollY - sectionTop, 0, sectionHeight - window.innerHeight);
+  };
+
+  const setVar = (name, value) => {
+    stage.style.setProperty(name, value);
+  };
 
   function requestTick() {
     if (rafPending) return;
@@ -209,11 +215,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Throttle resize so it doesn't choke the CPU
+  let resizeTimeout;
+  function handleResize() {
+    if (resizeTimeout) cancelAnimationFrame(resizeTimeout);
+    resizeTimeout = requestAnimationFrame(() => {
+      sectionTop = section.offsetTop;
+      sectionHeight = section.offsetHeight;
+      updateSightSlider();
+      requestTick();
+    });
+  }
+
   window.addEventListener("scroll", requestTick, { passive: true });
-  window.addEventListener("resize", () => {
-    updateSightSlider();
-    requestTick();
-  });
+  window.addEventListener("resize", handleResize, { passive: true });
+  
   window.addEventListener("pointermove", (e) => {
     targetMouseX = e.clientX / window.innerWidth - 0.5;
     targetMouseY = e.clientY / window.innerHeight - 0.5;
@@ -223,6 +239,9 @@ document.addEventListener("DOMContentLoaded", () => {
   sightPrev.addEventListener("click", () => moveSightSlider(-1));
   sightNext.addEventListener("click", () => moveSightSlider(1));
 
+  // Initialize bounds and start
+  sectionTop = section.offsetTop;
+  sectionHeight = section.offsetHeight;
   setupSightSlider();
   requestTick();
 });
